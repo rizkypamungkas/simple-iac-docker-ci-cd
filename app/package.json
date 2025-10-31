@@ -1,0 +1,14 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "Simple Node.js web app for CI/CD demo",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "rizky",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

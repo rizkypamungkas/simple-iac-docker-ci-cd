@@ -1,0 +1,23 @@
+# Node.js
+node_modules
+npm-debug.log
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# SSH Keys / Private files
+*.pem
+*.key
+
+# Docker
+*.log
+
+# VSCode
+.vscode/
+
+.pem
+
+~
