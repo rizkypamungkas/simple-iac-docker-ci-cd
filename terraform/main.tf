@@ -22,10 +22,20 @@ module "networking" {
   source             = "./modules/networking"  
 }
 
+module "iam" {
+  source = "./modules/iam"
+}
+
 module "compute" {
-  source        = "./modules/compute"
-  ami_id        = data.aws_ami.ubuntu.id
-  subnet_id     = module.networking.subnet_id
-  sg_ids        = [module.networking.sg_id]
-  instance_name = "demo-instance"
+  source                = "./modules/compute"
+  ami_id                = data.aws_ami.ubuntu.id
+  subnet_id             = module.networking.subnet_id
+  sg_ids                = [module.networking.sg_id]
+  iam_instance_profile  = module.iam.instance_profile_name
+  instance_name         = "demo-instance"
+
+}
+
+module "ecr" {
+  source = "./modules/ecr"
 }

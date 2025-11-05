@@ -13,3 +13,8 @@ variable "sg_ids" {
 variable "instance_name" {
   type = string
 }
+
+variable "iam_instance_profile" {
+  description = "attach instance profile to ec2 instance"
+  type = string
+}

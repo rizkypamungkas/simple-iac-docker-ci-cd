@@ -22,6 +22,7 @@ resource "aws_instance" "demo_instance" {
   vpc_security_group_ids      = var.sg_ids
   associate_public_ip_address = true
   key_name                    = "demo-key"
+  iam_instance_profile        = var.iam_instance_profile
 
   tags = {
     Name = var.instance_name
