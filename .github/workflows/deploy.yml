@@ -26,7 +26,8 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
+          ECR_REPOSITORY: ecr-ci-cd
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           # Build a docker container and
           # push it to ECR so that it can
@@ -37,7 +38,7 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{secrets.EC2_USER}}
+          host: ${{secrets.EC2_HOST}}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
@@ -46,11 +47,11 @@ jobs:
               | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
             echo "Pulling latest image..."
-            docker pull ${{ steps.login-ecr.outputs.registry }}/ecr-ci-cd:latest
+            docker pull ${{ steps.login-ecr.outputs.registry }}/ecr-ci-cd:${{ github.sha }}
 
             echo "Stopping old container..."
             docker stop app || true
             docker rm app || true
 
             echo "Running new container..."
-            docker run -d --name app -p 80:3000 ${{ steps.login-ecr.outputs.registry }}/ecr-ci-cd:latest
+            docker run -d --name app -p 80:3000 ${{ steps.login-ecr.outputs.registry }}/ecr-ci-cd:${{ github.sha }}
