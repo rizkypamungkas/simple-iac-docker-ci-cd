@@ -7,123 +7,193 @@
 
 ---
 
-## Project Overview
+This repository demonstrates how to **deploy a Node.js web application** using **Terraform (Infrastructure as Code)** and a **simple CI/CD pipeline with GitHub Actions**.  
 
-Node.js Web Application Deployment with Terraform and GitHub Actions
-
-This repository demonstrates how to provision AWS infrastructure using Terraform and deploy a Node.js web application on it through an automated CI/CD pipeline with GitHub Actions.
-
-The pipeline handles the full deployment process:
-
-Infrastructure provisioning – Terraform creates the necessary AWS resources, including:
-
-EC2 instances
-
-ECR repositories
-
-Security groups and networking rules
-
-IAM roles and policies required for EC2 to pull from ECR and interact with AWS services securely
-
-Containerization – The Node.js application is built into a Docker image.
-
-CI/CD automation – GitHub Actions pipeline:
-
-Builds and tags the Docker image
-
-Pushes the image to AWS ECR
-
-SSHs into the EC2 instance, pulls the latest image, stops the old container, and runs the new container
-
-## AWS IAM Roles / Permissions
-
-For this project, the following IAM roles/policies are required:
-
-### 1. GitHub Actions (CI/CD) Role
-- **Purpose:** Allow the workflow to push Docker images to ECR.
-- **Permissions / Policy:**
-  - `AmazonEC2ContainerRegistryFullAccess`
-  - `IAM:PassRole` (if needed)
-- **Configured via:** GitHub Secrets with AWS Access Key & Secret.
-
-### 2. EC2 Instance Role
-- **Purpose:** Allow EC2 to pull Docker images from ECR and run containers.
-- **Attached IAM Instance Profile**
-- **Permissions / Policy:**
-  - `AmazonEC2ContainerRegistryReadOnly`
-  - `CloudTrail:LookupEvents` (optional)
-  - `iam:CreateServiceLinkedRole` (for ECR replication if used)
+The pipeline builds a Docker image, pushes it to ECR, and deploys it to an EC2 instance.
 
 ---
 
-## Step-by-Step Deployment
+## Table of Contents
 
-### 1. Clone the repository
+1. [Project Overview](#project-overview)  
+2. [Clone Repository](#clone-repository)  
+3. [GitHub Secrets Setup](#github-secrets-setup)  
+4. [Terraform Infrastructure Setup](#terraform-infrastructure-setup)  
+5. [AWS IAM Roles and Policies](#aws-iam-roles-and-policies)  
+6. [CI/CD Workflow](#ci-cd-workflow)  
+7. [EC2 SSH Access](#ec2-ssh-access)  
+8. [Verify Deployment](#verify-deployment)  
+9. [Prerequisites](#prerequisites)  
+10. [Key Features](#key-features)
+
+---
+
+## Project Overview
+
+This project demonstrates a **full DevOps flow** for deploying a Node.js application:
+
+- Provision AWS infrastructure with Terraform  
+- Create IAM roles for secure access to AWS resources  
+- Build and push Docker images to AWS ECR  
+- Deploy and run containers on EC2 instances  
+- Simple CI/CD pipeline using GitHub Actions  
+- SSH access for troubleshooting and manual verification  
+
+---
+
+## Clone Repository
 
 ```bash
-git clone https://github.com/rizkypamungkas/simple-iac-docker-ci-cd.git
+git clone https://github.com/username/simple-iac-docker-ci-cd.git
 cd simple-iac-docker-ci-cd
-2. Configure AWS credentials
-Set your AWS Access Key ID, Secret Access Key, and Region as environment variables or GitHub Secrets:
+```
 
-bash
-Copy code
-export AWS_ACCESS_KEY_ID=<your-access-key-id>
-export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
-export AWS_REGION=<your-region>
-Also configure EC2 info for GitHub Actions:
+---
 
-EC2_INSTANCE_IP
+## GitHub Secrets Setup
 
-EC2_USER
+Go to **Settings → Secrets → Actions** and add the following secrets:
 
-EC2_PRIVATE_KEY
+- `AWS_ACCESS_KEY_ID` → IAM user for GitHub Actions  
+- `AWS_SECRET_ACCESS_KEY` → IAM user for GitHub Actions  
+- `AWS_REGION` → e.g., `ap-southeast-1`  
+- `EC2_USER` → e.g., `ubuntu` (depends on AMI)  
+- `EC2_PRIVATE_KEY` → Private key for EC2 SSH  
 
-3. Apply Terraform to provision resources
-bash
-Copy code
-cd terraform
+---
+
+## Terraform Infrastructure Setup
+
+1. Install Terraform (v1.x) if not already installed.  
+2. Initialize Terraform:
+```bash
 terraform init
+```
+3. Check the planned resources:
+```bash
 terraform plan
+```
+4. Apply the infrastructure:
+```bash
 terraform apply
-Terraform will create:
+```
 
-ECR repository
+**Terraform will create:**
 
-IAM roles & policies
+- **EC2 instance** with Security Group (HTTP 80 + SSH 22)  
+- **ECR repository**  
+- **IAM Role** for EC2  
+- **Security Groups**  
 
-EC2 instance (with IAM instance profile attached)
+---
 
-Output will include the public IP of the EC2 instance.
+## AWS IAM Roles and Policies
 
-4. CI/CD Workflow
-After pushing changes to main branch, the workflow will automatically:
+### 1️⃣ GitHub Actions IAM User (Manual)
 
-Checkout the repo
+- **Purpose:** Push Docker images to ECR  
+- **Permissions:** `AmazonEC2ContainerRegistryFullAccess`  
+- **Configured via:** GitHub Secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`)  
 
-Configure AWS credentials
+⚠️ This user is **not created via Terraform**.  
 
-Login to ECR
+---
 
-Build Docker image
+### 2️⃣ IAM Role for EC2 (Terraform-managed)
 
-Push Docker image to ECR
+- **Purpose:** Pull Docker images from ECR securely and run containers  
+- **Permissions:** `AmazonEC2ContainerRegistryReadOnly`  
+- **Terraform Steps:**  
+  1. Create `aws_iam_role` with EC2 assume role policy  
+  2. Attach `AmazonEC2ContainerRegistryReadOnly` via `aws_iam_role_policy_attachment`  
+  3. Create **Instance Profile** and attach to EC2 instance  
 
-SSH into EC2 and deploy container
+---
 
-Workflow file: .github/workflows/deploy.yml
+## CI/CD Workflow (GitHub Actions)
 
-5. Access your app
-Open your browser and navigate to:
+1. **Trigger:** Push to `main` branch  
+2. **Steps:**  
+   - Checkout repository  
+   - Configure AWS credentials  
+   - Login to Amazon ECR  
+   - Build Docker image and tag with `github.sha`  
+   - Push image to ECR  
+   - SSH into EC2  
+   - Pull latest image from ECR  
+   - Stop old container (if exists)  
+   - Run new container on port 80 → mapped to app port 3000  
 
-cpp
-Copy code
-http://<EC2_PUBLIC_IP>
-Highlights
-Node.js app with Docker
+3. **Optional:** Manual trigger via **Actions → Run workflow**.  
 
-Fully automated CI/CD using GitHub Actions
+---
 
-Infrastructure as Code via Terraform
+## EC2 SSH Access
 
-Clear IAM role separation for security
+To verify or debug the deployment:
+
+```bash
+ssh -i path/to/key.pem ubuntu@<EC2_PUBLIC_IP>
+```
+
+**Commands to check container:**
+```bash
+docker ps
+docker logs <container_id>
+```
+
+**Stop and remove old container manually (if needed):**
+```bash
+docker stop app || true
+docker rm app || true
+```
+
+---
+
+## Verify Deployment
+
+From local machine or browser:
+
+```bash
+curl http://<EC2_PUBLIC_IP>/
+```
+
+Expected response:
+```
+🚀 Hello from Node.js running in Docker on EC2!
+```
+
+---
+
+## Prerequisites
+
+### Local Machine / Developer
+
+- Git  
+- Node.js & npm  
+- Docker  
+- Terraform  
+- AWS CLI  
+- SSH client  
+
+### AWS Account
+
+- IAM user/role with permissions: `ec2:*`, `ecr:*`, `iam:*` (if Terraform manages IAM)  
+- Security Group allowing HTTP (80) and SSH (22)  
+
+### GitHub
+
+- Repository with workflow  
+- GitHub Secrets as described above  
+
+---
+
+## Key Features
+
+- End-to-end deployment pipeline for Node.js apps  
+- Infrastructure as Code (Terraform)  
+- Dockerized applications  
+- Simple CI/CD with GitHub Actions  
+- Secure EC2 access with IAM roles  
+- Step-by-step reproducible process
+
