@@ -9,14 +9,31 @@
 
 ## Project Overview
 
-This repository demonstrates how to deploy a **Node.js web application** using **Infrastructure as Code (IaC)** with **Terraform**, integrated with **CI/CD pipelines** via **GitHub Actions**.  
+Node.js Web Application Deployment with Terraform and GitHub Actions
 
-The pipeline automatically:  
-1. Builds a Docker image of the app  
-2. Pushes it to **AWS ECR**  
-3. Pulls and runs it on an **EC2 instance**  
+This repository demonstrates how to provision AWS infrastructure using Terraform and deploy a Node.js web application on it through an automated CI/CD pipeline with GitHub Actions.
 
----
+The pipeline handles the full deployment process:
+
+Infrastructure provisioning – Terraform creates the necessary AWS resources, including:
+
+EC2 instances
+
+ECR repositories
+
+Security groups and networking rules
+
+IAM roles and policies required for EC2 to pull from ECR and interact with AWS services securely
+
+Containerization – The Node.js application is built into a Docker image.
+
+CI/CD automation – GitHub Actions pipeline:
+
+Builds and tags the Docker image
+
+Pushes the image to AWS ECR
+
+SSHs into the EC2 instance, pulls the latest image, stops the old container, and runs the new container
 
 ## AWS IAM Roles / Permissions
 
