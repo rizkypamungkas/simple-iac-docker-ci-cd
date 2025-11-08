@@ -27,14 +27,22 @@ resource "aws_instance" "demo_instance" {
   tags = {
     Name = var.instance_name
   }
-
+  
   user_data = <<-EOL
     #!/bin/bash -xe
-    sudo apt update -y
-    sudo apt upgrade -y
-    sudo apt install -y docker.io
-    sudo systemctl start docker
-    sudo systemctl enable docker
-    sudo usermod -aG docker ubuntu
+    exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+    apt update -y
+    apt upgrade -y
+    apt install -y docker.io
+    
+    systemctl start docker
+    systemctl enable docker
+    usermod -aG docker ubuntu
+
+    apt install -y unzip curl
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    ./aws/install
   EOL
 }

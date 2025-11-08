@@ -7,6 +7,7 @@ npm-debug.log
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+terraform/terraform.tfstate.1761837433.backup
 
 # SSH Keys / Private files
 *.pem
